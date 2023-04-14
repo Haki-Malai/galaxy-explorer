@@ -5,7 +5,8 @@ from typing import Optional
 
 @click.group()
 def main() -> None:
-    """A command line interface for the Star Wars API."""
+    """A command line interface for the Star Wars API.
+    """
     pass
 
 
