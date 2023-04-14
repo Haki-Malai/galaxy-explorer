@@ -10,9 +10,9 @@ class StarWarsAPI:
     API_ERROR_MSG: str = 'Error: Could not reach API. Status code: {}'
     NOT_FOUND_MSG: str = '\nThe force is not strong within you'
 
-    CHARACTER_KEYS: dict = {"name": "Name", "height": "Height",
-                            "mass": "Mass", "birth_year": "Birth Year"}
-    HOMEWORLD_KEYS: dict = {"name": "Name", "population": "Population"}
+    CHARACTER_KEYS: dict = {'name': 'Name', 'height': 'Height',
+                            'mass': 'Mass', 'birth_year': 'Birth Year'}
+    HOMEWORLD_KEYS: dict = {'name': 'Name', 'population': 'Population'}
     HOMEWORLD_STR: str = '\nHomeworld\n' + '-' * 10
     COMPARISON_STR: str = '\n\nOn {}, 1 year on earth is {} years and 1 day {} days'
     NO_COMPARISON_MSG: str = '\n\nCould not compare {} with Earth'
@@ -106,7 +106,7 @@ class StarWarsAPI:
                 if homeworld_str:
                     character_data.append(homeworld_str)
 
-            yield "\n".join(character_data)
+            yield '\n'.join(character_data)
 
     def print_character_data(self, name: str, world: Optional[bool],
                              verbose=False) -> None:
