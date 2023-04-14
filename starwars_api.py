@@ -9,13 +9,14 @@ class StarWarsAPI:
 
     API_ERROR_MSG: str = 'Error: Could not reach API. Status code: {}'
     NOT_FOUND_MSG: str = '\nThe force is not strong within you'
+    HOMEWORLD_MSG: str = '\nHomeworld\n' + '-' * 10
+    COMPARISON_MSG: str = '\n\nOn {}, 1 year on earth is {} years and 1 day {} days'
+    NO_COMPARISON_MSG: str = '\n\nCould not compare {} with Earth'
 
     CHARACTER_KEYS: dict = {'name': 'Name', 'height': 'Height',
                             'mass': 'Mass', 'birth_year': 'Birth Year'}
     HOMEWORLD_KEYS: dict = {'name': 'Name', 'population': 'Population'}
-    HOMEWORLD_STR: str = '\nHomeworld\n' + '-' * 10
-    COMPARISON_STR: str = '\n\nOn {}, 1 year on earth is {} years and 1 day {} days'
-    NO_COMPARISON_MSG: str = '\n\nCould not compare {} with Earth'
+
     EARTH_YEAR: float = 365.25
     EARTH_DAY: float = 24
 
@@ -52,7 +53,7 @@ class StarWarsAPI:
         if properties.get('name') == 'unknown':
             return None
 
-        homeworld_str = self.HOMEWORLD_STR
+        homeworld_str = self.HOMEWORLD_MSG
         for key, title in self.HOMEWORLD_KEYS.items():
             homeworld_str = homeworld_str + f'\n{title}: {properties[key]}'
 
@@ -62,7 +63,7 @@ class StarWarsAPI:
             comparison = self._get_comparison_with_earth(planet_year, planet_day)
         except (ValueError, TypeError):
             return homeworld_str + self.NO_COMPARISON_MSG.format(properties['name'])
-        homeworld_str = homeworld_str + self.COMPARISON_STR.format(
+        homeworld_str = homeworld_str + self.COMPARISON_MSG.format(
             properties['name'], comparison['year'], comparison['day'])
 
         return homeworld_str
