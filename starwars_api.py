@@ -1,4 +1,7 @@
 from typing import Generator, Optional
+from datetime import datetime
+from cachetools import cached, TTLCache
+from joblib import Memory
 import requests
 
 
@@ -20,6 +23,19 @@ class StarWarsAPI:
     EARTH_YEAR: float = 365.25
     EARTH_DAY: float = 24
 
+    TIME_FORMAT: str = '%Y-%m-%d %H:%M:%S.%f'
+
+    cache = TTLCache(maxsize=100, ttl=600)
+    memory = Memory(location='.', verbose=0)
+
+    def clear_cache(self) -> None:
+        """Clears the cache.
+        """
+        self.cache.clear()
+        self.memory.clear(warn=False)
+
+    @cached(cache)
+    @memory.cache
     def _make_request(self, url: str) -> dict:
         """Makes a GET request to the Star Wars API.
         :param url: The url to make the request to.
@@ -36,9 +52,14 @@ class StarWarsAPI:
             raise requests.exceptions.RequestException(error_msg)
 
         json_data = response.json()
-        results = json_data['result']
+        results = json_data.get('result', [])
         if not results:
             raise ValueError(self.NOT_FOUND_MSG)
+
+        cached_time = datetime.now()
+        for result in results:
+            if isinstance(result, dict):
+                result['cached'] = cached_time.strftime(self.TIME_FORMAT)
 
         return results
 
@@ -70,8 +91,8 @@ class StarWarsAPI:
 
     def _get_comparison_with_earth(self, planet_year: float, planet_day: float
                                     )-> dict:
-        """Gets the comparison between earth and a Star Wars planet
-        :return: The comparison between earth and Tatooine
+        """Gets the comparison between earth and a Star Wars planet.
+        :return: The comparison between earth and Tatooine.
         """
         year_ratio = planet_year / self.EARTH_YEAR
         day_ratio = planet_day / self.EARTH_DAY
@@ -107,13 +128,15 @@ class StarWarsAPI:
                 if homeworld_str:
                     character_data.append(homeworld_str)
 
+            character_data.append(f'\n\ncached: {character["cached"]}')
+
             yield '\n'.join(character_data)
 
     def print_character_data(self, name: str, world: Optional[bool],
                              verbose=False) -> None:
-        """Prints data for a character in the Star Wars API by name
-        :param name: The name of the character to search
-        :param verbose: Whether to raise errors or not
+        """Prints data for a character in the Star Wars API by name.
+        :param name: The name of the character to search.
+        :param verbose: Whether to raise errors or not.
         """
         for data in self.generate_character_data(name, world, verbose):
             print('\n' + data)
