@@ -1,8 +1,12 @@
+import re
+import requests
+import random
+import logging
+import matplotlib.pyplot as plt
 from typing import Generator, Optional
 from datetime import datetime
 from cachetools import cached, TTLCache
 from joblib import Memory
-import requests
 
 
 class StarWarsAPI:
@@ -35,6 +39,29 @@ class StarWarsAPI:
         """
         self.include_homeworld = include_homeworld
         self.verbose = verbose
+        self.logger = self._create_logger()
+
+    def _create_logger(self):
+        """Creates a logger object.
+        :return: The logger object.
+        """
+        logger = logging.getLogger('swapi')
+        logger.setLevel(logging.DEBUG)
+
+        fh = logging.FileHandler('swapi.log')
+        fh.setLevel(logging.DEBUG)
+
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.ERROR)
+
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        fh.setFormatter(formatter)
+        ch.setFormatter(formatter)
+
+        logger.addHandler(fh)
+        logger.addHandler(ch)
+
+        return logger
 
     def clear_cache(self) -> None:
         """Clears the cache.
@@ -53,6 +80,7 @@ class StarWarsAPI:
         """
         if url.startswith('/'):
             url = self.BASE_URL + url
+
         response = requests.get(url)
 
         if response.status_code != 200:
@@ -115,6 +143,8 @@ class StarWarsAPI:
         url = f'/people/?name={name}'
         try:
             results = self._make_request(url)
+            self.logger.info(f'Search made: {url}')
+            self.logger.info(f'Result: {results}, Time: {datetime.now()}')
         except (requests.exceptions.RequestException, ValueError) as e:
             if self.verbose:
                 raise e
@@ -143,3 +173,63 @@ class StarWarsAPI:
         """
         for data in self.generate_character_data(name):
             print('\n' + data)
+
+    def generate_fake_searches(self, num_searches: int) -> None:
+        fake_list = ['Luke', 'Darth', 'Leia', 'Han', 'Chewbacca', 'R2-D2']
+        for _ in range(num_searches):
+            self.print_character_data(random.choice(fake_list))
+
+    def load_logs(self) -> dict[list, list]:
+        """Loads the logs from the swapi.log file.
+        """
+        with open('swapi.log', 'r') as f:
+            log_data = f.read()
+
+        name_pattern = r'name=([^\s]+)'
+        result_pattern = r"'name':\s+'(.*?)'"
+
+        searches_made = re.findall(name_pattern, log_data)
+        results = re.findall(result_pattern, log_data)
+        print(results)
+
+        return {'searches_made': searches_made, 'results': results}
+
+    def visualize_searches_made(self) -> None:
+        """Vizualize the searches made.
+        """
+        searches_made = self.load_logs()['searches_made']
+
+        name_counts = {}
+        for name in searches_made:
+            if name in name_counts:
+                name_counts[name] += 1
+            else:
+                name_counts[name] = 1
+
+        names = list(name_counts.keys())
+        counts = list(name_counts.values())
+        plt.bar(names, counts)
+        plt.xlabel("Name searched")
+        plt.ylabel("Number of searches")
+        plt.title("Searches by name")
+        plt.show()
+
+    def visualize_results(self) -> None:
+        """Visualizes the results.
+        """
+        searches_made = self.load_logs()['results']
+
+        result_counts = {}
+        for name in searches_made:
+            if name in result_counts:
+                result_counts[name] += 1
+            else:
+                result_counts[name] = 1
+
+        results = list(result_counts.keys())
+        counts = list(result_counts.values())
+        plt.bar(results, counts)
+        plt.xlabel("Result Name")
+        plt.ylabel("Number of results")
+        plt.title("Results by name")
+        plt.show()

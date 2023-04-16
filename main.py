@@ -34,5 +34,26 @@ def cache(clear: bool) -> None:
     click.echo('removed cache')
 
 
+@main.command()
+@click.argument('num_searches', type=int, default=20)
+def fake(num_searches) -> None:
+    """Generate fake searches.
+    """
+    api = StarWarsAPI()
+    api.generate_fake_searches(num_searches)
+
+
+@main.command()
+@click.option('-r', '--results', is_flag=True, default=False,
+              help='Visualize the results.')
+def plot(results: bool) -> None:
+    """Plot the application logs.
+    """
+    api = StarWarsAPI()
+    if results:
+        api.visualize_results()
+    else:
+        api.visualize_searches_made()
+
 if __name__ == '__main__':
     main()
