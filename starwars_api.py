@@ -33,7 +33,7 @@ class StarWarsAPI:
         :param world: Whether to print the character's home world.
         :param verbose: Whether to raise errors/warnings.
         """
-        self.world = include_homeworld
+        self.include_homeworld = include_homeworld
         self.verbose = verbose
 
     def clear_cache(self) -> None:
