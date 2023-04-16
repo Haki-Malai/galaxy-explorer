@@ -1,8 +1,5 @@
 import click
 from starwars_api import StarWarsAPI
-from typing import Optional
-
-api = StarWarsAPI()
 
 
 @click.group()
@@ -14,20 +11,24 @@ def main() -> None:
 
 @main.command()
 @click.argument('name', type=str)
-@click.option('-w', '--world', is_flag=True, help='Print the character\'s home world.')
-@click.option('-v', '--verbose', is_flag=True, help='Raise errors/warnings.')
-def search(name: str, world: Optional[bool] = False,
-           verbose: Optional[bool] = False) -> None:
+@click.option('-w', '--world', is_flag=True, default=False,
+              help='Print the character\'s home world.')
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help='Raise errors/warnings.')
+def search(name: str, world: bool, verbose: bool) -> None:
     """Search for a character in the Star Wars API.
     """
-    api.print_character_data(name, world, verbose)
+    api = StarWarsAPI(world, verbose)
+    api.print_character_data(name)
 
 
 @main.command()
-@click.option('-c', '--clear', is_flag=True, help='Clear the cache.')
-def cache(clear: bool = False) -> None:
+@click.option('-c', '--clear', is_flag=True, default=False,
+              help='Clear the cache.')
+def cache(clear: bool) -> None:
     """Print the cache.
     """
+    api = StarWarsAPI()
     if clear:
         api.clear_cache()
     click.echo('removed cache')

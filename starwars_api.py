@@ -12,7 +12,7 @@ class StarWarsAPI:
 
     API_ERROR_MSG: str = 'Error: Could not reach API. Status code: {}'
     NOT_FOUND_MSG: str = '\nThe force is not strong within you'
-    HOMEWORLD_MSG: str = '\nHomeworld\n' + '-' * 10
+    HOMEWORLD_MSG: str = '\n\nHomeworld\n' + '-' * 10
     COMPARISON_MSG: str = '\n\nOn {}, 1 year on earth is {} years and 1 day {} days'
     NO_COMPARISON_MSG: str = '\n\nCould not compare {} with Earth'
 
@@ -28,6 +28,14 @@ class StarWarsAPI:
     cache = TTLCache(maxsize=100, ttl=600)
     memory = Memory(location='.', verbose=0)
 
+    def __init__(self, include_homeworld=False, verbose=False) -> None:
+        """Initializes the StarWarsAPI class.
+        :param world: Whether to print the character's home world.
+        :param verbose: Whether to raise errors/warnings.
+        """
+        self.world = include_homeworld
+        self.verbose = verbose
+
     def clear_cache(self) -> None:
         """Clears the cache.
         """
@@ -36,7 +44,7 @@ class StarWarsAPI:
 
     @cached(cache)
     @memory.cache
-    def _make_request(self, url: str) -> dict:
+    def _make_request(self, url: str) -> list[dict]:
         """Makes a GET request to the Star Wars API.
         :param url: The url to make the request to.
         :return: The json data from the response.
@@ -99,19 +107,16 @@ class StarWarsAPI:
 
         return {'year': round(year_ratio, 2), 'day': round(day_ratio, 2)}
 
-    def generate_character_data(self, name: str, include_homeworld: bool = False,
-                                verbose: bool = False) -> Generator[str, None, None]:
+    def generate_character_data(self, name: str) -> Generator[str, None, None]:
         """Generates data for a character in the Star Wars API by name.
         :param name: The name of the character to search.
-        :param include_homeworld: Whether to include homeworld data or not.
-        :param verbose: Whether to raise errors or not.
-        :return: A generator that yields data for a character in the Star Wars API.
+        :return: A generator that yields data for a Star Wars character.
         """
         url = f'/people/?name={name}'
         try:
             results = self._make_request(url)
         except (requests.exceptions.RequestException, ValueError) as e:
-            if verbose:
+            if self.verbose:
                 raise e
             print(str(e))
             return
@@ -123,7 +128,7 @@ class StarWarsAPI:
                 if key in properties:
                     character_data.append(f'{title}: {properties[key]}')
 
-            if include_homeworld and 'homeworld' in properties:
+            if self.include_homeworld and 'homeworld' in properties:
                 homeworld_str = self._get_homeworld(properties['homeworld'])
                 if homeworld_str:
                     character_data.append(homeworld_str)
@@ -132,11 +137,9 @@ class StarWarsAPI:
 
             yield '\n'.join(character_data)
 
-    def print_character_data(self, name: str, world: Optional[bool],
-                             verbose=False) -> None:
+    def print_character_data(self, name: str) -> None:
         """Prints data for a character in the Star Wars API by name.
         :param name: The name of the character to search.
-        :param verbose: Whether to raise errors or not.
         """
-        for data in self.generate_character_data(name, world, verbose):
+        for data in self.generate_character_data(name):
             print('\n' + data)
