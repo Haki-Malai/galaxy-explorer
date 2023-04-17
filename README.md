@@ -64,7 +64,7 @@ docker run galaxy-explorer
 ### Help
 To view the help message and available options for a command, use the --help option:
 ```bash
-python main.py search --help
+python main.py --help
 ```
 
 ### Licence
