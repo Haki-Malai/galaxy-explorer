@@ -23,13 +23,13 @@ def search(name: str, world: bool, verbose: bool) -> None:
 
 
 @main.command()
-@click.option('-c', '--clear', is_flag=True, default=False,
+@click.option('-c', '--clean', is_flag=True, default=False,
               help='Clear the cache.')
-def cache(clear: bool) -> None:
+def cache(clean: bool) -> None:
     """Print the cache.
     """
     api = StarWarsAPI()
-    if clear:
+    if clean:
         api.clear_cache()
     click.echo('removed cache')
 
@@ -46,12 +46,16 @@ def fake(num_searches) -> None:
 @main.command()
 @click.option('-r', '--results', is_flag=True, default=False,
               help='Visualize the results.')
-def plot(results: bool) -> None:
+@click.option('-t', '--time', is_flag=True, default=False,
+              help='Visualize the time.')
+def plot(results: bool, time: bool) -> None:
     """Plot the application logs.
     """
     api = StarWarsAPI()
     if results:
         api.visualize_results()
+    elif time:
+        api.visualize_searches_by_time()
     else:
         api.visualize_searches_made()
 

@@ -2,6 +2,7 @@ import re
 import requests
 import random
 import logging
+import time
 import matplotlib.pyplot as plt
 from typing import Generator, Optional
 from datetime import datetime
@@ -17,7 +18,8 @@ class StarWarsAPI:
     API_ERROR_MSG: str = 'Error: Could not reach API. Status code: {}'
     NOT_FOUND_MSG: str = '\nThe force is not strong within you'
     HOMEWORLD_MSG: str = '\n\nHomeworld\n' + '-' * 10
-    COMPARISON_MSG: str = '\n\nOn {}, 1 year on earth is {} years and 1 day {} days'
+    COMPARISON_MSG: str = '\n\nOn {}, 1 year on earth is' + \
+        '{} years and 1 day {} days'
     NO_COMPARISON_MSG: str = '\n\nCould not compare {} with Earth'
 
     CHARACTER_KEYS: dict = {'name': 'Name', 'height': 'Height',
@@ -141,10 +143,13 @@ class StarWarsAPI:
         :return: A generator that yields data for a Star Wars character.
         """
         url = f'/people/?name={name}'
+        start_time = time.monotonic()
         try:
             results = self._make_request(url)
             self.logger.info(f'Search made: {url}')
-            self.logger.info(f'Result: {results}, Time: {datetime.now()}')
+            end_time = time.monotonic()
+            elapsed_time = end_time - start_time
+            self.logger.info(f'Result: {results}, Time: {elapsed_time:.3f}s')
         except (requests.exceptions.RequestException, ValueError) as e:
             if self.verbose:
                 raise e
@@ -175,7 +180,8 @@ class StarWarsAPI:
             print('\n' + data)
 
     def generate_fake_searches(self, num_searches: int) -> None:
-        fake_list = ['Luke', 'Darth', 'Leia', 'Han', 'Chewbacca', 'R2-D2']
+        fake_list = ['Luke', 'Darth', 'Leia', 'Han', 'Chewbacca',
+                     'R2-D2', 'lu', 'dar', 'le', 'ha', 'ch', 'r2']
         for _ in range(num_searches):
             self.print_character_data(random.choice(fake_list))
 
@@ -187,12 +193,14 @@ class StarWarsAPI:
 
         name_pattern = r'name=([^\s]+)'
         result_pattern = r"'name':\s+'(.*?)'"
+        time_pattern = r'(?<=Time: )\d+\.\d+(?=s)'
 
         searches_made = re.findall(name_pattern, log_data)
         results = re.findall(result_pattern, log_data)
-        print(results)
+        search_times = re.findall(time_pattern, log_data)
 
-        return {'searches_made': searches_made, 'results': results}
+        return {'searches_made': searches_made,'results': results,
+                'search_times': search_times}
 
     def visualize_searches_made(self) -> None:
         """Vizualize the searches made.
@@ -232,4 +240,46 @@ class StarWarsAPI:
         plt.xlabel("Result Name")
         plt.ylabel("Number of results")
         plt.title("Results by name")
+        plt.show()
+
+    def visualize_searches_by_time(self) -> None:
+        """Visualizes the searches made by time.
+        """
+        data = self.load_logs()
+        searches_made = data['searches_made']
+        search_times = data['search_times']
+
+        search_times = [float(time) for time in search_times]
+
+        name_counts = {}
+        for name in searches_made:
+            if name in name_counts:
+                name_counts[name] += 1
+            else:
+                name_counts[name] = 1
+
+        names = list(name_counts.keys())
+
+        search_times_by_name = {}
+        for i, name in enumerate(names):
+            if name in search_times_by_name:
+                search_times_by_name[name].append(search_times[i])
+            else:
+                search_times_by_name[name] = [search_times[i]]
+
+        for name in search_times_by_name:
+            search_times_by_name[name] = sum(search_times_by_name[name]) \
+                                         / len(search_times_by_name[name])
+
+        search_times_by_name_list = list(search_times_by_name.items())
+        sorted_search_times_by_name_list = sorted(
+            search_times_by_name_list, key=lambda x: -x[1])
+
+        names = [t[0] for t in sorted_search_times_by_name_list]
+        times = [t[1] for t in sorted_search_times_by_name_list]
+
+        plt.bar(names, times)
+        plt.xlabel("Name searched")
+        plt.ylabel("Average time (s)")
+        plt.title("Search times by name")
         plt.show()
