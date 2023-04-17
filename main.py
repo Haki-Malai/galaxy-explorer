@@ -17,6 +17,9 @@ def main() -> None:
               help='Raise errors/warnings.')
 def search(name: str, world: bool, verbose: bool) -> None:
     """Search for a character in the Star Wars API.
+    :param name: The name of the character to search for.
+    :param world: Print the character's home world.
+    :param verbose: Raise errors/warnings.
     """
     api = StarWarsAPI(world, verbose)
     api.print_character_data(name)
@@ -27,6 +30,7 @@ def search(name: str, world: bool, verbose: bool) -> None:
               help='Clear the cache.')
 def cache(clean: bool) -> None:
     """Print the cache.
+    :param clean: Clear the cache.
     """
     api = StarWarsAPI()
     if clean:
@@ -38,6 +42,7 @@ def cache(clean: bool) -> None:
 @click.argument('num_searches', type=int, default=20)
 def fake(num_searches) -> None:
     """Generate fake searches.
+    :param num_searches: The number of fake searches to generate.
     """
     api = StarWarsAPI()
     api.generate_fake_searches(num_searches)
@@ -50,6 +55,8 @@ def fake(num_searches) -> None:
               help='Visualize the time.')
 def plot(results: bool, time: bool) -> None:
     """Plot the application logs.
+    :param results: Plot the results.
+    :param time: Plot the time.
     """
     api = StarWarsAPI()
     if results:

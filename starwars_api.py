@@ -18,7 +18,7 @@ class StarWarsAPI:
     API_ERROR_MSG: str = 'Error: Could not reach API. Status code: {}'
     NOT_FOUND_MSG: str = '\nThe force is not strong within you'
     HOMEWORLD_MSG: str = '\n\nHomeworld\n' + '-' * 10
-    COMPARISON_MSG: str = '\n\nOn {}, 1 year on earth is' + \
+    COMPARISON_MSG: str = '\n\nOn {}, 1 year on earth is ' + \
         '{} years and 1 day {} days'
     NO_COMPARISON_MSG: str = '\n\nCould not compare {} with Earth'
 
@@ -101,7 +101,7 @@ class StarWarsAPI:
 
         return results
 
-    def _get_homeworld(self, url: str) -> Optional[dict]:
+    def _get_homeworld(self, url: str) -> Optional[str]:
         """Gets the name of a character's home world.
         :param url: The url to make the request to.
         :return: The name of the character's home world, or None if unknown.
@@ -110,7 +110,7 @@ class StarWarsAPI:
         properties = results['properties']
 
         if properties.get('name') == 'unknown':
-            return None
+            return
 
         homeworld_str = self.HOMEWORLD_MSG
         for key, title in self.HOMEWORLD_KEYS.items():
@@ -165,8 +165,7 @@ class StarWarsAPI:
 
             if self.include_homeworld and 'homeworld' in properties:
                 homeworld_str = self._get_homeworld(properties['homeworld'])
-                if homeworld_str:
-                    character_data.append(homeworld_str)
+                character_data.append(homeworld_str)
 
             character_data.append(f'\n\ncached: {character["cached"]}')
 
@@ -187,6 +186,8 @@ class StarWarsAPI:
 
     def load_logs(self) -> dict[list, list]:
         """Loads the logs from the swapi.log file.
+        :return: A dictionary with the searches made, search results,
+        and search times.
         """
         with open('swapi.log', 'r') as f:
             log_data = f.read()
@@ -196,16 +197,20 @@ class StarWarsAPI:
         time_pattern = r'(?<=Time: )\d+\.\d+(?=s)'
 
         searches_made = re.findall(name_pattern, log_data)
-        results = re.findall(result_pattern, log_data)
+        search_results = re.findall(result_pattern, log_data)
         search_times = re.findall(time_pattern, log_data)
 
-        return {'searches_made': searches_made,'results': results,
+        return {'searches_made': searches_made,
+                'search_results': search_results,
                 'search_times': search_times}
 
     def visualize_searches_made(self) -> None:
         """Vizualize the searches made.
         """
         searches_made = self.load_logs()['searches_made']
+        if not searches_made:
+            print('No searches to visualize.')
+            return
 
         name_counts = {}
         for name in searches_made:
@@ -216,19 +221,24 @@ class StarWarsAPI:
 
         names = list(name_counts.keys())
         counts = list(name_counts.values())
+        plt.figure(figsize=(12, 6))
         plt.bar(names, counts)
         plt.xlabel("Name searched")
         plt.ylabel("Number of searches")
         plt.title("Searches by name")
+        plt.xticks(rotation=15, fontsize=8)
         plt.show()
 
     def visualize_results(self) -> None:
         """Visualizes the results.
         """
-        searches_made = self.load_logs()['results']
+        search_results = self.load_logs()['search_results']
+        if not search_results:
+            print('No results to visualize.')
+            return
 
         result_counts = {}
-        for name in searches_made:
+        for name in search_results:
             if name in result_counts:
                 result_counts[name] += 1
             else:
@@ -236,10 +246,12 @@ class StarWarsAPI:
 
         results = list(result_counts.keys())
         counts = list(result_counts.values())
+        plt.figure(figsize=(12, 6))
         plt.bar(results, counts)
         plt.xlabel("Result Name")
         plt.ylabel("Number of results")
-        plt.title("Results by name")
+        plt.title("Results by count")
+        plt.xticks(rotation=15, fontsize=8)
         plt.show()
 
     def visualize_searches_by_time(self) -> None:
