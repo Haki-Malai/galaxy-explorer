@@ -54,6 +54,13 @@ python main.py test # or:
 python main.py test --coverage
 ```
 
+### Test the application using Docker
+To test the application using Docker, use the following commands:
+```bash
+docker build -t galaxy-explorer .
+docker run galaxy-explorer
+```
+
 ### Help
 To view the help message and available options for a command, use the --help option:
 ```bash
