@@ -47,6 +47,13 @@ To clear the cache, use the cache command:
 python main.py cache --clean
 ```
 
+### Test the application
+To test the application, use the test command:
+```bash
+python main.py test # or:
+python main.py test --coverage
+```
+
 ### Help
 To view the help message and available options for a command, use the --help option:
 ```bash
