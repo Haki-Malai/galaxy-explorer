@@ -56,7 +56,8 @@ class StarWarsAPI:
         ch = logging.StreamHandler()
         ch.setLevel(logging.ERROR)
 
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(message)s')
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
 
@@ -73,11 +74,11 @@ class StarWarsAPI:
 
     @cached(cache)
     @memory.cache
-    def _make_request(self, url: str) -> list[dict]:
+    def _make_request(self, url: str) -> dict:
         """Makes a GET request to the Star Wars API.
         :param url: The url to make the request to.
         :return: The json data from the response.
-        :raises requests.exceptions.RequestException: If there is a connection error.
+        :raises requests.exceptions.RequestException: If connection error.
         :raises ValueError: If the results are empty.
         """
         if url.startswith('/'):
@@ -121,7 +122,8 @@ class StarWarsAPI:
             planet_day = float(properties['rotation_period'])
             comparison = self._get_comparison_with_earth(planet_year, planet_day)
         except (ValueError, TypeError):
-            return homeworld_str + self.NO_COMPARISON_MSG.format(properties['name'])
+            return homeworld_str + \
+                self.NO_COMPARISON_MSG.format(properties['name'])
         homeworld_str = homeworld_str + self.COMPARISON_MSG.format(
             properties['name'], comparison['year'], comparison['day'])
 

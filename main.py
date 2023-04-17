@@ -66,5 +66,20 @@ def plot(results: bool, time: bool) -> None:
     else:
         api.visualize_searches_made()
 
+
+@main.command()
+@click.option('-c', '--coverage', is_flag=True, default=False,
+              help='Run the coverage report.')
+def test(coverage: bool) -> None:
+    """Run the tests.
+    :param coverage: Run the coverage report.
+    """
+    import pytest
+    if coverage:
+        pytest.main(['--cov-report', 'term-missing', '--cov=starwars_api'])
+    else:
+        pytest.main()
+
+
 if __name__ == '__main__':
     main()
